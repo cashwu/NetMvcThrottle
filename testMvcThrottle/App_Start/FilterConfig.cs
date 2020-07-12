@@ -1,4 +1,5 @@
 ﻿using System.Configuration;
+using System.Diagnostics;
 using System.Net;
 using System.Web.Mvc;
 using System.Web.Routing;
@@ -22,12 +23,21 @@ namespace testMvcThrottle
                         StackBlockedRequests = true,
                     },
                     Repository = new CacheRepository(),
-                    QuotaExceededResponseCode = HttpStatusCode.OK
+                    QuotaExceededResponseCode = HttpStatusCode.OK,
+                    Logger = new MvcThrottleCustomLog()
                 };
 
                 filters.Add(throttleFilter);
             }
         }
+    }
+
+    public class MvcThrottleCustomLog : IThrottleLogger
+    {
+        public void Log(ThrottleLogEntry entry)
+        {
+            Debug.WriteLine("{0} Request {1} from {2} has been blocked, quota {3}/{4} exceeded by {5}",
+                            entry.LogDate, entry.RequestId, entry.ClientIp, entry.RateLimit, entry.RateLimitPeriod, entry.TotalRequests);        }
     }
 
     public class MvcThrottleCustomFilter : ThrottlingFilter
